@@ -44,7 +44,9 @@ class WelcomePage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 20),
               child: OutlinedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pushReplacementNamed(context, '/login');
+                },
                 style: OutlinedButton.styleFrom(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),

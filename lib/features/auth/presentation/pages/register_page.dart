@@ -5,6 +5,7 @@ import 'package:users/core/theme.dart';
 import 'package:users/features/auth/presentation/pages/set_password_page.dart';
 import 'package:users/features/auth/presentation/widgets/auth_input_field.dart';
 import 'package:users/features/auth/presentation/widgets/custom_button.dart';
+import 'package:users/features/auth/presentation/widgets/social_button.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -36,7 +37,7 @@ class _RegisterPageState extends State<RegisterPage> {
           builder: (context) => SetPasswordPage(
             name: _nameController.text,
             email: _emailController.text,
-            phoneNum: _phoneController.text,
+            phone: _phoneController.text,
           ),
         ),
       );
@@ -80,12 +81,19 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // Name Input Field
                 AuthInputField(
                     hint: 'Name', controller: _nameController, isName: true),
+
                 const SizedBox(height: 20),
+
+                // Email Input Field
                 AuthInputField(
                     hint: 'Email', controller: _emailController, isEmail: true),
+
                 const SizedBox(height: 20),
+
+                // Phone Input Field
                 TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.number,
@@ -141,13 +149,16 @@ class _RegisterPageState extends State<RegisterPage> {
                     if (value == null || value.isEmpty) {
                       return "Please fill in this field";
                     }
-                    if (int.tryParse(value.trim()) == null || value.trim().length != 9) {
+                    if (int.tryParse(value.trim()) == null ||
+                        value.trim().length != 9) {
                       return "Invalid phone number";
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 20),
+
+                // Terms of service and Privacy policy
                 Row(
                   children: [
                     SvgPicture.asset('assets/icons/check-circle.svg'),
@@ -186,11 +197,16 @@ class _RegisterPageState extends State<RegisterPage> {
                   ],
                 ),
                 const SizedBox(height: 20),
+
+                // Continue Button
                 CustomButton(
                   text: 'Continue',
                   onPress: _continue,
                 ),
+
                 const SizedBox(height: 20),
+
+                // Divider
                 const Row(
                   children: [
                     Expanded(
@@ -216,7 +232,42 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                   ],
-                )
+                ),
+
+                const SizedBox(height: 20),
+
+                // Social buttons
+                const SocialButton(iconPath: 'assets/icons/google.svg'),
+
+                const SizedBox(height: 50),
+
+                // Bottom Prompt
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Already have an account? ",
+                      style: TextStyle(
+                        color: AppColors.contentTertiary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacementNamed(context, '/login');
+                      },
+                      child: const Text(
+                        "Sign in",
+                        style: TextStyle(
+                        color: AppColors.primary700,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

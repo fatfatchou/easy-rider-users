@@ -80,6 +80,10 @@ class AppColors {
   static const Color errorColor = Color(0xFFF44336);
   static const Color successColor = Color(0xFF43A048);
   static const Color infoColor = Color(0xFFB8B8B8);
+
+  // Shades
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color black = Color(0xFF121212);
 }
 
 ThemeData lightTheme = ThemeData(
