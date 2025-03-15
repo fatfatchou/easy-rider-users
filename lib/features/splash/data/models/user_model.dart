@@ -1,5 +1,5 @@
 import 'package:firebase_database/firebase_database.dart';
-import 'package:users/features/auth/domain/entities/user_entity.dart';
+import 'package:users/features/splash/domain/entities/user_entity.dart';
 
 class UserModel extends UserEntity {
   UserModel({

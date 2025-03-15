@@ -15,3 +15,17 @@ class AuthFailureState extends AuthState {
 
   AuthFailureState({required this.message});
 }
+
+class ResetPasswordLoadingState extends AuthState {}
+
+class ResetPasswordSuccessState extends AuthState {
+  final String message;
+
+  ResetPasswordSuccessState({required this.message});
+}
+
+class ResetPasswordFailureState extends AuthState {
+  final String message;
+
+  ResetPasswordFailureState({required this.message});
+}

@@ -5,6 +5,7 @@ import 'package:users/core/theme.dart';
 import 'package:users/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:users/features/auth/presentation/bloc/auth_event.dart';
 import 'package:users/features/auth/presentation/bloc/auth_state.dart';
+import 'package:users/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:users/features/auth/presentation/widgets/auth_input_field.dart';
 import 'package:users/features/auth/presentation/widgets/custom_button.dart';
 import 'package:users/features/auth/presentation/widgets/social_button.dart';
@@ -106,7 +107,33 @@ class _LoginPageState extends State<LoginPage> {
                             controller: _passwordController,
                             isPassword: true),
 
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 10),
+
+                        // Forgot password
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const ForgotPasswordPage(),
+                              ),
+                            );
+                          },
+                          child: const Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              'Forgot password?',
+                              style: TextStyle(
+                                color: AppColors.red500,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 40),
 
                         // Login Button
                         CustomButton(

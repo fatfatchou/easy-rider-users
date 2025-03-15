@@ -20,3 +20,9 @@ class LoginEvent extends AuthEvent {
 
   LoginEvent({required this.email, required this.password});
 }
+
+class ResetPasswordEvent extends AuthEvent {
+  final String email;
+
+  ResetPasswordEvent({required this.email});
+}

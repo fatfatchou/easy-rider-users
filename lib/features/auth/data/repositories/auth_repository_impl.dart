@@ -25,4 +25,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> login({required String email, required String password}) async {
     await authRemoteDataSource.login(email: email, password: password);
   }
+  
+  @override
+  Future<void> resetPassword({required String email}) async {
+    await authRemoteDataSource.resetPassword(email: email);
+  }
 }

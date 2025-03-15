@@ -34,7 +34,7 @@ class AuthRemoteDataSource {
         },
       );
     } catch (e) {
-      print('Error: $e');
+      print('Error sign up: $e');
       rethrow;
     }
   }
@@ -43,10 +43,26 @@ class AuthRemoteDataSource {
     required String email,
     required String password,
   }) async {
-    await firebaseAuth
+    try {
+      await firebaseAuth
         .signInWithEmailAndPassword(email: email, password: password)
-        .then((auth) async {
+        .then((auth) {
       currentUser = auth.user;
     });
+    } catch (e) {
+      print('Error sign in: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> resetPassword({
+    required String email,
+  }) async {
+    try {
+      await firebaseAuth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      print('Error reset password: $e');
+      rethrow;
+    }
   }
 }
