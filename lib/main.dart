@@ -8,6 +8,7 @@ import 'package:users/di_container.dart';
 import 'package:users/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:users/features/auth/presentation/pages/login_page.dart';
 import 'package:users/features/auth/presentation/pages/register_page.dart';
+import 'package:users/features/home/presentation/bloc/home_bloc.dart';
 import 'package:users/features/splash/presentation/bloc/splash_bloc.dart';
 import 'package:users/features/splash/presentation/pages/splash_page.dart';
 import 'package:users/onboarding/welcome_page.dart';
@@ -48,6 +49,11 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (_) => SplashBloc(
             readCurrentOnlineUserInfoUseCase: sl(),
+          ),
+        ),
+        BlocProvider(
+          create: (_) => HomeBloc(
+            trackUserLocationUseCase: sl(),
           ),
         ),
       ],

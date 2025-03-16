@@ -5,6 +5,9 @@ import 'package:users/features/auth/domain/repositories/auth_repository.dart';
 import 'package:users/features/auth/domain/usecases/login_use_case.dart';
 import 'package:users/features/auth/domain/usecases/register_use_case.dart';
 import 'package:users/features/auth/domain/usecases/reset_password_use_case.dart';
+import 'package:users/features/home/data/repositories/home_repository_impl.dart';
+import 'package:users/features/home/domain/repositories/home_repository.dart';
+import 'package:users/features/home/domain/usecases/track_user_location_use_case.dart';
 import 'package:users/features/splash/data/datasources/splash_remote_data_source.dart';
 import 'package:users/features/splash/data/repositories/splash_repository_impl.dart';
 import 'package:users/features/splash/domain/repositories/splash_repository.dart';
@@ -26,10 +29,13 @@ void setUpDependencies() {
       () => AuthRepositoryImpl(authRemoteDataSource: sl()));
   sl.registerLazySingleton<SplashRepository>(
       () => SplashRepositoryImpl(splashRemoteDataSource: sl()));
+  sl.registerLazySingleton<HomeRepository>(
+      () => HomeRepositoryImpl());
 
   // Use cases
   sl.registerLazySingleton(() => RegisterUseCase(authRepository: sl()));
   sl.registerLazySingleton(() => LoginUseCase(authRepository: sl()));
   sl.registerLazySingleton(() => ResetPasswordUseCase(authRepository: sl()));
   sl.registerLazySingleton(() => ReadCurrentOnlineUserInfoUseCase(splashRepository: sl()));
+  sl.registerLazySingleton(() => TrackUserLocationUseCase(homeRepository: sl()));
 }
