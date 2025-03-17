@@ -4,16 +4,16 @@ abstract class HomeState {}
 
 class HomeInitialState extends HomeState {}
 
-class HomeLoadingState extends HomeState {}
+class GetUserLocationLoadingState extends HomeState {}
 
-class HomeLoadedState extends HomeState {
+class GetUserLocationLoadedState extends HomeState {
   final LocationEntity location;
 
-  HomeLoadedState({required this.location});
+  GetUserLocationLoadedState({required this.location});
 }
 
-class HomeErrorState extends HomeState {
+class GetUserLocationErrorState extends HomeState {
   final String message;
 
-  HomeErrorState(this.message);
+  GetUserLocationErrorState(this.message);
 }

@@ -12,12 +12,15 @@ import 'package:users/features/home/presentation/bloc/home_state.dart';
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
-
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>
+    with AutomaticKeepAliveClientMixin<HomePage> {
+  @override
+  bool get wantKeepAlive => true;
+
   mp.MapboxMap? _mapboxController;
 
   // StreamSubscription? userPositionStream;
@@ -25,9 +28,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     // _setupPositionTracking();
-    context
-        .read<HomeBloc>()
-        .add(TrackUserLocationEvent()); // Start tracking when UI loads
+    // context
+    //     .read<HomeBloc>()
+    //     .add(TrackUserLocationEvent()); // Start tracking when UI loads
+    BlocProvider.of<HomeBloc>(context).add(GetUserLocationEvent());
     super.initState();
   }
 
@@ -42,7 +46,6 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _mapboxController = controller;
     });
-
     _mapboxController?.location.updateSettings(
       mp.LocationComponentSettings(enabled: true, pulsingEnabled: true),
     );
@@ -93,30 +96,140 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Call super.build
+
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
-        if (state is HomeLoadingState) {
+        if (state is GetUserLocationLoadingState) {
           return const Center(
             child: CircularProgressIndicator(
               color: AppColors.primaryColor,
             ),
           );
-        } else if (state is HomeLoadedState) {
+        } else if (state is GetUserLocationLoadedState) {
           _mapboxController?.setCamera(
             mp.CameraOptions(
               zoom: 15,
               center: mp.Point(
                 coordinates: mp.Position(
-                    state.location.longitude, state.location.latitude),
+                  state.location.longitude,
+                  state.location.latitude,
+                ),
               ),
             ),
           );
-        } else if (state is HomeErrorState) {
+          return Stack(
+            children: [
+              mp.MapWidget(
+                onMapCreated: _onMapCreated,
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.gray100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 5, horizontal: 10),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.location_on,
+                                    color: AppColors.primary900),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        "From",
+                                        style: TextStyle(
+                                          color: AppColors.contentPrimary,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        state.location.locationName,
+                                        style: const TextStyle(
+                                          color: AppColors.gray400,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.gray100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Padding(
+                            padding: EdgeInsets.all(5),
+                            child: Row(
+                              children: [
+                                Icon(Icons.location_on,
+                                    color: AppColors.red900),
+                                SizedBox(width: 10),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "To",
+                                      style: TextStyle(
+                                        color: AppColors.contentPrimary,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      "A35 Bach Dang...",
+                                      style: TextStyle(
+                                        color: AppColors.gray400,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        } else if (state is GetUserLocationErrorState) {
           return Center(child: Text(state.message));
         }
-        return mp.MapWidget(
-          onMapCreated: _onMapCreated,
-        );
+        return const Center();
       },
     );
   }

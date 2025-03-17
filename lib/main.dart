@@ -53,6 +53,7 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => HomeBloc(
+            getUserLocationUseCase: sl(),
             trackUserLocationUseCase: sl(),
           ),
         ),
