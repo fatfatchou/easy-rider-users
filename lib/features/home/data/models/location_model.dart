@@ -1,10 +1,11 @@
 import 'package:users/features/home/domain/entities/location_entity.dart';
 
 class LocationModel extends LocationEntity {
-  LocationModel(
-      {required super.locationName,
-      required super.latitude,
-      required super.longitude});
+  LocationModel({
+    required super.locationName,
+    required super.latitude,
+    required super.longitude,
+  });
 
   factory LocationModel.fromJson(Map<String, dynamic> json) {
     return LocationModel(

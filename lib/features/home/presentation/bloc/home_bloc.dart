@@ -1,23 +1,25 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:users/features/home/domain/entities/location_entity.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:users/features/home/domain/usecases/get_polyline_use_case.dart';
 import 'package:users/features/home/domain/usecases/get_user_location_use_case.dart';
-import 'package:users/features/home/domain/usecases/track_user_location_use_case.dart';
 import 'package:users/features/home/presentation/bloc/home_event.dart';
 import 'package:users/features/home/presentation/bloc/home_state.dart';
 
+import 'package:users/core/utils/map_utils.dart';
+
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetUserLocationUseCase getUserLocationUseCase;
-  final TrackUserLocationUseCase trackUserLocationUseCase;
-  StreamSubscription<LocationEntity>? userPositionStream;
+  final GetPolylineUseCase getPolylineUseCase;
 
   HomeBloc(
-      {required this.trackUserLocationUseCase,
-      required this.getUserLocationUseCase})
+      {required this.getUserLocationUseCase, required this.getPolylineUseCase})
       : super(HomeInitialState()) {
     on<GetUserLocationEvent>(_onGetUserLocation);
-    // on<TrackUserLocationEvent>(_onTrackUserLocation);
+    on<UpdateDropoffLocationEvent>(_onUpdateDropoffLocation);
+    on<GetPolylineEvent>(_onGetPolyline);
   }
 
   Future<void> _onGetUserLocation(
@@ -25,39 +27,55 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(GetUserLocationLoadingState());
     try {
       final location = await getUserLocationUseCase.call();
-      emit(GetUserLocationLoadedState(location: location));
+      emit(HomeLoadedState(location: location));
     } catch (e) {
       emit(GetUserLocationErrorState('Fail to get user current location'));
     }
   }
 
-  // void _onTrackUserLocation(
-  //     TrackUserLocationEvent event, Emitter<HomeState> emit) async {
-  //   emit(HomeLoadingState());
+  void _onUpdateDropoffLocation(
+      UpdateDropoffLocationEvent event, Emitter<HomeState> emit) {
+    final currentState = state;
+    if (currentState is HomeLoadedState) {
+      emit(
+        HomeLoadedState(
+          location: currentState.location,
+          dropoffLocation: event.dropoffLocation, // Update dropoff location
+        ),
+      );
+    }
+  }
 
-  //   try {
-  //     userPositionStream?.cancel();
-  //     await for (final location in trackUserLocationUseCase.call()) {
-  //       if (emit.isDone)
-  //         return; // ✅ Ensure the Bloc is still active before emitting
-  //       emit(HomeLoadedState(location: location));
-  //     }
-  //     // userPositionStream = trackUserLocationUseCase.call().listen(
-  //     //   (location) {
-  //     //     emit(HomeLoadedState(location: location));
-  //     //   },
-  //     //   onError: (error) {
-  //     //     emit(HomeErrorState(error.toString()));
-  //     //   },
-  //     // );
-  //   } catch (e) {
-  //     emit(HomeErrorState(e.toString()));
-  //   }
-  // }
+  Future<void> _onGetPolyline(
+      GetPolylineEvent event, Emitter<HomeState> emit) async {
+    emit(GetPolylineLoadingState());
+    try {
+      final direction = await getPolylineUseCase.call(
+        originLocation: event.originLocation,
+        dropoffLocation: event.dropoffLocation,
+      );
 
-  // @override
-  // Future<void> close() {
-  //   userPositionStream?.cancel();
-  //   return super.close();
-  // }
+      // Decode the polyline
+      PolylinePoints polylinePoints = PolylinePoints();
+      List<Point> decodedPolyline = polylinePoints
+          .decodePolyline(direction.ePoints)
+          .map((point) => Point(
+                coordinates: Position(point.longitude, point.latitude),
+              ))
+          .toList();
+
+      Position centerPoint =
+          getCenterCoordinatesForPolyline(points: decodedPolyline);
+
+      emit(HomeLoadedState(
+        location: event.originLocation,
+        dropoffLocation: event.dropoffLocation,
+        direction: direction,
+        polylinePoints: decodedPolyline,
+        centerPoint: centerPoint,
+      ));
+    } catch (e) {
+      emit(GetPolylineErrorState('Fail to get route'));
+    }
+  }
 }
