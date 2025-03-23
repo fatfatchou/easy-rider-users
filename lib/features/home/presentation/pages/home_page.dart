@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:users/core/theme.dart';
+import 'package:users/core/utils/map_utils.dart';
 import 'package:users/features/home/domain/entities/location_entity.dart';
 import 'package:users/features/home/presentation/bloc/home_bloc.dart';
 import 'package:users/features/home/presentation/bloc/home_event.dart';
@@ -39,9 +40,7 @@ class _HomePageState extends State<HomePage>
       LocationComponentSettings(enabled: true, pulsingEnabled: true),
     );
 
-    if (state is HomeLoadedState &&
-        state.polylinePoints != null &&
-        _mapboxController != null) {
+    if (state is HomeLoadedState && state.polylinePoints != null) {
       _addPolylineToMap(
         state.polylinePoints!
             .map((p) => [p.coordinates.lng, p.coordinates.lat])
@@ -50,6 +49,26 @@ class _HomePageState extends State<HomePage>
     }
 
     if (state is HomeLoadedState && state.centerPoint != null) {
+      // Add origin marker
+      addMarkerToMap(
+        _mapboxController!,
+        state.location.longitude,
+        state.location.latitude,
+        "origin",
+      );
+
+      // Add dropoff marker
+      addMarkerToMap(
+        _mapboxController!,
+        state.dropoffLocation!.longitude,
+        state.dropoffLocation!.latitude,
+        "dropoff",
+      );
+
+      _mapboxController!.location.updateSettings(
+      LocationComponentSettings(enabled: false),
+    );
+
       _mapboxController?.setCamera(
         CameraOptions(
           zoom: 15,
@@ -122,7 +141,8 @@ class _HomePageState extends State<HomePage>
       id: 'route-layer',
       sourceId: 'line',
       lineColor: AppColors.yellow700.value,
-      lineWidth: 4.0,
+      lineWidth: 5.0,
+      lineCap: LineCap.ROUND
     ));
   }
 
@@ -303,7 +323,7 @@ class _HomePageState extends State<HomePage>
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.all(5),
+                                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                                 child: Row(
                                   children: [
                                     const Icon(Icons.location_on,
@@ -343,6 +363,8 @@ class _HomePageState extends State<HomePage>
                               ),
                             ),
                           ),
+
+                          // Continue Button
                         ],
                       ),
                     ),

@@ -38,9 +38,12 @@ class HomeRemoteDataSource {
         '$profile/'
         '${originLocation.longitude},${originLocation.latitude};'
         '${dropoffLocation.longitude},${dropoffLocation.latitude}'
-        '?access_token=$accessToken',
+        '?overview=full'
+        '&access_token=$accessToken',
       ),
     );
+
+    print(jsonDecode(response.body)['routes'][0]);
 
     if (response.statusCode == 200) {
       return DirectionModel.fromJson(jsonDecode(response.body)['routes'][0]);
