@@ -1,5 +1,5 @@
-<svg width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M9 1.3418L15 6.1418V14.5418H3V6.1418L9 1.3418ZM10.8 10.9418V7.3418H7.2V10.9418H10.8Z" fill="#C2CCDE" fill-opacity="0.25"/>
-<path d="M13.5 4.9418V1.6418H11.7V3.5018L13.5 4.9418Z" fill="#C2CCDE" fill-opacity="0.25"/>
-<path d="M9 1.3418L15 6.1418V14.5418H3V6.1418L9 1.3418ZM9 1.3418L0.75 7.9418M9 1.3418L17.25 7.9418M10.8 7.3418V10.9418H7.2V7.3418H10.8ZM13.5 1.6418V4.9418L11.7 3.5018V1.6418H13.5Z" stroke="#414141" stroke-linecap="round" stroke-linejoin="round"/>
+<svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M12 6.3418L18 11.1418V19.5418H6V11.1418L12 6.3418ZM13.8 15.9418V12.3418H10.2V15.9418H13.8Z" fill="#C2CCDE" fill-opacity="0.25"/>
+<path d="M16.5 9.9418V6.6418H14.7V8.5018L16.5 9.9418Z" fill="#C2CCDE" fill-opacity="0.25"/>
+<path d="M12 6.3418L18 11.1418V19.5418H6V11.1418L12 6.3418ZM12 6.3418L3.75 12.9418M12 6.3418L20.25 12.9418M13.8 12.3418V15.9418H10.2V12.3418H13.8ZM16.5 6.6418V9.9418L14.7 8.5018V6.6418H16.5Z" stroke="#414141" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

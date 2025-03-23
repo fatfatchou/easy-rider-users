@@ -47,17 +47,15 @@ class _TabsScreenState extends State<TabsPage> {
               toolbarHeight: 120,
               backgroundColor: darkTheme ? Colors.black : Colors.white,
               surfaceTintColor: darkTheme ? Colors.black : Colors.white,
-              bottom: PreferredSize(
-                preferredSize: Size.zero,
-                child: Text(
-                  activePageTitle,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: AppColors.contentPrimary,
-                    fontWeight: FontWeight.w500,
-                  ),
+              title: Text(
+                activePageTitle,
+                style: const TextStyle(
+                  fontSize: 20,
+                  color: AppColors.contentPrimary,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
+              centerTitle: true,
             )
           : null,
       body: PageView(
@@ -74,20 +72,30 @@ class _TabsScreenState extends State<TabsPage> {
         currentIndex: _selectedPageIndex,
         type: BottomNavigationBarType.fixed,
         backgroundColor: AppColors.white,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        enableFeedback: false,
+        selectedLabelStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: AppColors.primaryColor,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: AppColors.contentSecondary,
+        ),
+        selectedFontSize: 12,
+        unselectedFontSize: 12,
+        useLegacyColorScheme: false,
         items: [
           BottomNavigationBarItem(
             icon: SvgPicture.asset(
               'assets/icons/home.svg',
             ),
-            label: '',
+            label: 'Home',
             activeIcon: SvgPicture.asset('assets/icons/home_selected.svg'),
           ),
           BottomNavigationBarItem(
             icon: SvgPicture.asset('assets/icons/profile.svg'),
-            label: '',
+            label: 'Profile',
             activeIcon: SvgPicture.asset('assets/icons/profile_selected.svg'),
           ),
         ],

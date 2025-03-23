@@ -1,5 +1,5 @@
 import 'package:firebase_database/firebase_database.dart';
-import 'package:users/features/splash/domain/entities/user_entity.dart';
+import 'package:users/features/profile/domain/entities/user_entity.dart';
 
 class UserModel extends UserEntity {
   UserModel({
@@ -9,7 +9,7 @@ class UserModel extends UserEntity {
     required super.phone,
   });
 
-  factory UserModel.fromSnapshot(DataSnapshot snap) {
+  factory UserModel.fromJson(DataSnapshot snap) {
     return UserModel(
       id: snap.key,
       name: (snap.value as dynamic)["name"],

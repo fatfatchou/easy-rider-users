@@ -1,11 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:users/core/global.dart';
 import 'package:users/core/theme.dart';
-import 'package:users/features/splash/presentation/bloc/splash_bloc.dart';
-import 'package:users/features/splash/presentation/bloc/splash_event.dart';
 import 'package:users/onboarding/onboarding_page.dart';
 
 class SplashPage extends StatefulWidget {
@@ -21,11 +18,15 @@ class _SplashPageState extends State<SplashPage> {
       const Duration(seconds: 3),
       () {
         if (firebaseAuth.currentUser != null) {
-          BlocProvider.of<SplashBloc>(context)
-              .add(ReadCurrentOnlineUserInfoEvent());
+          // BlocProvider.of<ProfileBloc>(context).add(GetCurrentUserEvent());
           Navigator.pushReplacementNamed(context, '/tab');
         } else {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const OnboardingPage(),));
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const OnboardingPage(),
+            ),
+          );
         }
       },
     );

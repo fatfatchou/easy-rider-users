@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:users/core/global.dart';
 
@@ -5,6 +6,8 @@ class AuthRemoteDataSource {
   final String baseUrl;
 
   AuthRemoteDataSource({required this.baseUrl});
+
+  User? currentUser;
 
   Future<void> register({
     required String name,

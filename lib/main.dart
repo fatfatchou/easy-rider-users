@@ -10,8 +10,8 @@ import 'package:users/features/auth/presentation/pages/login_page.dart';
 import 'package:users/features/auth/presentation/pages/register_page.dart';
 import 'package:users/features/home/presentation/bloc/home_bloc.dart';
 import 'package:users/features/search/presentation/bloc/search_bloc.dart';
-import 'package:users/features/splash/presentation/bloc/splash_bloc.dart';
-import 'package:users/features/splash/presentation/pages/splash_page.dart';
+import 'package:users/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:users/splash_page.dart';
 import 'package:users/onboarding/welcome_page.dart';
 import 'package:users/tabs_page.dart';
 
@@ -48,8 +48,8 @@ class MyApp extends StatelessWidget {
           ),
         ),
         BlocProvider(
-          create: (_) => SplashBloc(
-            readCurrentOnlineUserInfoUseCase: sl(),
+          create: (_) => ProfileBloc(
+            getCurrentUserUseCase: sl(),
           ),
         ),
         BlocProvider(
