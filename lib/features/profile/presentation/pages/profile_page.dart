@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:users/core/global.dart';
 import 'package:users/core/theme.dart';
+import 'package:users/features/auth/presentation/widgets/custom_button.dart';
 import 'package:users/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:users/features/profile/presentation/bloc/profile_event.dart';
 import 'package:users/features/profile/presentation/bloc/profile_state.dart';
@@ -116,6 +118,24 @@ class _ProfilePageState extends State<ProfilePage>
                   ),
                 ),
               ),
+              const SizedBox(height: 30),
+              SizedBox(
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: CustomButton(
+                    text: 'Sign out',
+                    onPress: () {
+                      firebaseAuth.signOut();
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/login',
+                        (route) => false,
+                      );
+                    },
+                  ),
+                ),
+              )
             ],
           );
         } else if (state is ProfileFailureState) {

@@ -7,7 +7,7 @@ Position getCenterCoordinatesForPolyline({required List<Point> points}) {
 }
 
 void addMarkerToMap(
-    MapboxMap controller, double lng, double lat, String markerName) async {
+    MapboxMap controller, Point point, String markerName) async {
   final ByteData bytes = await rootBundle.load(markerName == "origin"
       ? 'assets/images/origin.png'
       : 'assets/images/dropoff.png');
@@ -16,9 +16,10 @@ void addMarkerToMap(
   await controller.annotations.createPointAnnotationManager().then((manager) {
     manager.create(
       PointAnnotationOptions(
-        geometry: Point(coordinates: Position(lng, lat)),
+        geometry: point,
         iconSize: 1.5, // Adjust marker size
         image: icon, // Make sure you have a custom marker in Mapbox style
+        iconOffset: [0.0, -10.0],
       ),
     );
   });

@@ -40,34 +40,41 @@ class _HomePageState extends State<HomePage>
       LocationComponentSettings(enabled: true, pulsingEnabled: true),
     );
 
-    if (state is HomeLoadedState && state.polylinePoints != null) {
-      _addPolylineToMap(
-        state.polylinePoints!
-            .map((p) => [p.coordinates.lng, p.coordinates.lat])
-            .toList(),
-      );
-    }
+    // if (state is HomeLoadedState && state.polylinePoints != null) {
+    //   _addPolylineToMap(
+    //     state.polylinePoints!
+    //         .map((p) => [p.coordinates.lng, p.coordinates.lat])
+    //         .toList(),
+    //   );
+    // }
 
-    if (state is HomeLoadedState && state.centerPoint != null) {
+    if (state is HomeLoadedState &&
+        state.polylinePoints != null &&
+        state.centerPoint != null &&
+        state.direction != null) {
       // Add origin marker
       addMarkerToMap(
         _mapboxController!,
-        state.location.longitude,
-        state.location.latitude,
+        state.polylinePoints!.first,
         "origin",
       );
 
       // Add dropoff marker
       addMarkerToMap(
         _mapboxController!,
-        state.dropoffLocation!.longitude,
-        state.dropoffLocation!.latitude,
+        state.polylinePoints!.last,
         "dropoff",
       );
 
+      _addPolylineToMap(
+        state.polylinePoints!
+            .map((p) => [p.coordinates.lng, p.coordinates.lat])
+            .toList(),
+      );
+
       _mapboxController!.location.updateSettings(
-      LocationComponentSettings(enabled: false),
-    );
+        LocationComponentSettings(enabled: false),
+      );
 
       _mapboxController?.setCamera(
         CameraOptions(
@@ -93,7 +100,7 @@ class _HomePageState extends State<HomePage>
         ),
         MapAnimationOptions(
           duration: 500,
-          startDelay: 1000,
+          startDelay: 500,
         ),
       );
     } else if (state is HomeLoadedState && state.centerPoint == null) {
@@ -137,13 +144,15 @@ class _HomePageState extends State<HomePage>
       data: geoJsonData,
     ));
 
-    await _mapboxController?.style.addLayer(LineLayer(
-      id: 'route-layer',
-      sourceId: 'line',
-      lineColor: AppColors.yellow700.value,
-      lineWidth: 5.0,
-      lineCap: LineCap.ROUND
-    ));
+    await _mapboxController?.style.addLayer(
+      LineLayer(
+        id: 'line-layer',
+        sourceId: 'line',
+        lineColor: AppColors.yellow700.value,
+        lineWidth: 5.0,
+        lineCap: LineCap.ROUND,
+      ),
+    );
   }
 
   @override
@@ -323,7 +332,8 @@ class _HomePageState extends State<HomePage>
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 5, horizontal: 10),
                                 child: Row(
                                   children: [
                                     const Icon(Icons.location_on,

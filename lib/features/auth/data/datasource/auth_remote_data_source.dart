@@ -47,14 +47,19 @@ class AuthRemoteDataSource {
     required String password,
   }) async {
     try {
-      await firebaseAuth
-        .signInWithEmailAndPassword(email: email, password: password)
-        .then((auth) {
-      currentUser = auth.user;
-    });
+      UserCredential auth = await firebaseAuth.signInWithEmailAndPassword(
+          email: email, password: password);
+      DatabaseReference userRef =
+          FirebaseDatabase.instance.ref().child("users");
+
+      DataSnapshot snapshot = await userRef.child(auth.user!.uid).get();
+
+      if (snapshot.value == null) {
+        firebaseAuth.signOut();
+        throw Exception("User not found in database");
+      }
     } catch (e) {
-      print('Error sign in: $e');
-      rethrow;
+      throw Exception("Login failed: ${e.toString()}");
     }
   }
 

@@ -16,8 +16,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(ProfileLoadingState());
     try {
       final user = await getCurrentUserUseCase.call();
-      print('Name: ${user.name}');
-      print("Phone Number: ${user.phone}");
       emit(ProfileLoadedState(user: user));
     } catch (e) {
       emit(ProfileFailureState(message: 'Failed to load user data'));
