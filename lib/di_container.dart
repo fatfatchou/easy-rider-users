@@ -10,6 +10,7 @@ import 'package:users/features/home/data/repositories/home_repository_impl.dart'
 import 'package:users/features/home/domain/repositories/home_repository.dart';
 import 'package:users/features/home/domain/usecases/get_polyline_use_case.dart';
 import 'package:users/features/home/domain/usecases/get_user_location_use_case.dart';
+import 'package:users/features/home/domain/usecases/initialize_geofire_listener_use_case.dart';
 import 'package:users/features/profile/domain/repositories/profile_repository.dart';
 import 'package:users/features/search/data/datasource/search_remote_data_source.dart';
 import 'package:users/features/search/data/repositories/search_repository_impl.dart';
@@ -52,6 +53,7 @@ void setUpDependencies() {
   sl.registerLazySingleton(
       () => GetCurrentUserUseCase(profileRepository: sl()));
   sl.registerLazySingleton(() => GetUserLocationUseCase(homeRepository: sl()));
+  sl.registerLazySingleton(() => InitializeGeofireListenerUseCase(homeRepository: sl()));
   sl.registerLazySingleton(() => GetPolylineUseCase(homeRepository: sl()));
   sl.registerLazySingleton(
       () => GetAutomaticallySuggestionUseCase(searchRepository: sl()));

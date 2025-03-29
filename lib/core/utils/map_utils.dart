@@ -10,7 +10,9 @@ void addMarkerToMap(
     MapboxMap controller, Point point, String markerName) async {
   final ByteData bytes = await rootBundle.load(markerName == "origin"
       ? 'assets/images/origin.png'
-      : 'assets/images/dropoff.png');
+      : markerName == "dropoff"
+          ? 'assets/images/dropoff.png'
+          : 'assets/images/car.png');
   final Uint8List icon = bytes.buffer.asUint8List();
 
   await controller.annotations.createPointAnnotationManager().then((manager) {

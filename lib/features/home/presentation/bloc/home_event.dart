@@ -4,6 +4,12 @@ abstract class HomeEvent {}
 
 class GetUserLocationEvent extends HomeEvent {}
 
+class InitializeGeofireListenerEvent extends HomeEvent {
+  final LocationEntity userLocation;
+
+  InitializeGeofireListenerEvent({required this.userLocation});
+}
+
 class UpdateDropoffLocationEvent extends HomeEvent {
   final LocationEntity dropoffLocation;
 

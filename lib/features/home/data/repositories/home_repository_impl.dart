@@ -1,5 +1,6 @@
 import 'package:users/features/home/data/datasource/home_remote_data_source.dart';
 import 'package:users/features/home/data/models/location_model.dart';
+import 'package:users/features/home/domain/entities/active_nearby_driver_entity.dart';
 import 'package:users/features/home/domain/entities/direction_entity.dart';
 import 'package:users/features/home/domain/entities/location_entity.dart';
 import 'package:users/features/home/domain/repositories/home_repository.dart';
@@ -65,5 +66,13 @@ class HomeRepositoryImpl implements HomeRepository {
       originLocation: originLocation,
       dropoffLocation: dropoffLocation,
     );
+  }
+
+  @override
+  Stream<List<ActiveNearbyDriverEntity>> initializeGeofireListener({
+    required LocationEntity userLocation,
+  })  {
+    return homeRemoteDataSource.initializeGeofireListener(
+        userLocation: userLocation);
   }
 }

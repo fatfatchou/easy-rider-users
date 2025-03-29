@@ -1,10 +1,15 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:users/core/utils/utils.dart';
+import 'package:users/features/home/data/models/active_nearby_driver_model.dart';
 import 'package:users/features/home/data/models/direction_model.dart';
 import 'package:users/features/home/data/models/location_model.dart';
+import 'package:users/features/home/domain/entities/active_nearby_driver_entity.dart';
 import 'package:users/features/home/domain/entities/location_entity.dart';
 
 class HomeRemoteDataSource {
@@ -50,5 +55,59 @@ class HomeRemoteDataSource {
     } else {
       throw Exception('Failed to fetch Profile');
     }
+  }
+
+  Stream<List<ActiveNearbyDriverEntity>> initializeGeofireListener({
+    required LocationEntity userLocation,
+  }) {
+    final StreamController<List<ActiveNearbyDriverEntity>> controller =
+        StreamController();
+    List<ActiveNearbyDriverEntity> activeNearbyDrivers = [];
+
+    ActiveNearbyDriverModel activeDriver;
+    Geofire.initialize("activeDrivers");
+
+    StreamSubscription activeDriverStream = Geofire.queryAtLocation(
+            userLocation.latitude, userLocation.longitude, 10)!
+        .listen(
+      (event) {
+        print('This is event: $event');
+        if (event != null) {
+          var callBack = event['callBack'];
+
+          switch (callBack) {
+            case Geofire.onKeyEntered:
+              print("Key Entered");
+              activeDriver = ActiveNearbyDriverModel.fromJson(event);
+              activeNearbyDrivers = addActiveNearbyDriverToList(
+                  driver: activeDriver,
+                  activeNearbyDrivers: activeNearbyDrivers);
+              break;
+
+            case Geofire.onKeyExited:
+              String driverId =
+                  ActiveNearbyDriverModel.fromJson(event).driverId;
+              activeNearbyDrivers = deleteOfflineDriverFromList(
+                  driverId: driverId, activeNearbyDrivers: activeNearbyDrivers);
+              break;
+
+            case Geofire.onKeyMoved:
+              activeDriver = ActiveNearbyDriverModel.fromJson(event);
+              activeNearbyDrivers = updateActiveNearbyDriverLocation(
+                  driver: activeDriver,
+                  activeNearbyDrivers: activeNearbyDrivers);
+              break;
+
+            case Geofire.onGeoQueryReady:
+              break;
+          }
+
+          print("Active nearby driver: $activeNearbyDrivers");
+          controller.add(activeNearbyDrivers);
+        }
+      },
+    );
+
+    return controller.stream;
   }
 }

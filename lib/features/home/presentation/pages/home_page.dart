@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:users/core/theme.dart';
 import 'package:users/core/utils/map_utils.dart';
+import 'package:users/features/home/domain/entities/active_nearby_driver_entity.dart';
 import 'package:users/features/home/domain/entities/location_entity.dart';
 import 'package:users/features/home/presentation/bloc/home_bloc.dart';
 import 'package:users/features/home/presentation/bloc/home_event.dart';
@@ -115,6 +116,9 @@ class _HomePageState extends State<HomePage>
           ),
         ),
       );
+
+      BlocProvider.of<HomeBloc>(context)
+          .add(InitializeGeofireListenerEvent(userLocation: state.location));
     }
   }
 
@@ -154,6 +158,8 @@ class _HomePageState extends State<HomePage>
       ),
     );
   }
+
+  void createDriverMarker() {}
 
   @override
   Widget build(BuildContext context) {
@@ -199,22 +205,29 @@ class _HomePageState extends State<HomePage>
             }
           },
         ),
-        // BlocListener<HomeBloc, HomeState>(
-        //   listenWhen: (previous, current) =>
-        //       current is HomeLoadedState && current.polylinePoints != null,
-        //   listener: (context, state) {
-        //     if (state is HomeLoadedState &&
-        //         state.polylinePoints != null &&
-        //         _mapboxController != null) {
-        //       print('REACH HERE');
-        //       _addPolylineToMap(
-        //         state.polylinePoints!
-        //             .map((p) => [p.coordinates.lng, p.coordinates.lat])
-        //             .toList(),
-        //       );
-        //     }
-        //   },
-        // ),
+        BlocListener<HomeBloc, HomeState>(
+          listenWhen: (previous, current) =>
+              current is HomeLoadedState && current.nearbyDrivers != null,
+          listener: (context, state) {
+            if (state is HomeLoadedState) {
+              for (ActiveNearbyDriverEntity eachDriver
+                  in state.nearbyDrivers!) {
+                print('Each Driver Id: ${eachDriver.driverId}');
+
+                Point eachDriverPoint = Point(
+                    coordinates:
+                        Position(eachDriver.longitude, eachDriver.latitude));
+
+                // Add nearby drivers marker
+                addMarkerToMap(
+                  _mapboxController!,
+                  eachDriverPoint,
+                  "car_driver",
+                );
+              }
+            }
+          },
+        ),
       ],
       child: BlocBuilder<HomeBloc, HomeState>(
         builder: (context, state) {
@@ -373,8 +386,6 @@ class _HomePageState extends State<HomePage>
                               ),
                             ),
                           ),
-
-                          // Continue Button
                         ],
                       ),
                     ),

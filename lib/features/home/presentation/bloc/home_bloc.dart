@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:users/features/home/domain/entities/active_nearby_driver_entity.dart';
 import 'package:users/features/home/domain/usecases/get_polyline_use_case.dart';
 import 'package:users/features/home/domain/usecases/get_user_location_use_case.dart';
+import 'package:users/features/home/domain/usecases/initialize_geofire_listener_use_case.dart';
 import 'package:users/features/home/presentation/bloc/home_event.dart';
 import 'package:users/features/home/presentation/bloc/home_state.dart';
 
@@ -13,13 +15,17 @@ import 'package:users/core/utils/map_utils.dart';
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetUserLocationUseCase getUserLocationUseCase;
   final GetPolylineUseCase getPolylineUseCase;
+  final InitializeGeofireListenerUseCase initializeGeofireListenerUseCase;
 
-  HomeBloc(
-      {required this.getUserLocationUseCase, required this.getPolylineUseCase})
-      : super(HomeInitialState()) {
+  HomeBloc({
+    required this.getUserLocationUseCase,
+    required this.getPolylineUseCase,
+    required this.initializeGeofireListenerUseCase,
+  }) : super(HomeInitialState()) {
     on<GetUserLocationEvent>(_onGetUserLocation);
     on<UpdateDropoffLocationEvent>(_onUpdateDropoffLocation);
     on<GetPolylineEvent>(_onGetPolyline);
+    on<InitializeGeofireListenerEvent>(_onInitializeGeofireListener);
   }
 
   Future<void> _onGetUserLocation(
@@ -43,6 +49,28 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           dropoffLocation: event.dropoffLocation, // Update dropoff location
         ),
       );
+    }
+  }
+
+  Future<void> _onInitializeGeofireListener(
+      InitializeGeofireListenerEvent event, Emitter<HomeState> emit) async {
+    try {
+      await emit.forEach(
+        initializeGeofireListenerUseCase.call(userLocation: event.userLocation),
+        onData: (List<ActiveNearbyDriverEntity> nearbyDrivers) {
+          print("Updated Nearby Drivers in Bloc: $nearbyDrivers");
+          return HomeLoadedState(
+              location: event.userLocation, nearbyDrivers: nearbyDrivers);
+        },
+        onError: (error, stackTrace) {
+          print("Error in Geofire Stream: $error");
+          return InitializeGeofireListenerErrorState(
+              'Failed to fetch nearby drivers');
+        },
+      );
+    } catch (e) {
+      emit(InitializeGeofireListenerErrorState(
+          'Failed to fetch nearby drivers'));
     }
   }
 
