@@ -26,6 +26,8 @@ class _HomePageState extends State<HomePage>
   bool get wantKeepAlive => true;
 
   MapboxMap? _mapboxController;
+  final Map<String, PointAnnotation> _driverMarkers = {};
+  bool activeNearbyDriverKeysLoaded = false;
 
   @override
   void initState() {
@@ -33,21 +35,25 @@ class _HomePageState extends State<HomePage>
     super.initState();
   }
 
+  void removeDriverMarker(String driverId) async {
+    if (_driverMarkers.containsKey(driverId)) {
+      await _mapboxController?.annotations
+          .removeAnnotationManagerById(driverId);
+      _driverMarkers.remove(driverId);
+      print("Removed driver marker: $driverId");
+    }
+  }
+
   void _onMapCreated(MapboxMap? controller, HomeState? state) {
     setState(() {
       _mapboxController = controller;
     });
+
+    print('Map Created Again');
+
     _mapboxController?.location.updateSettings(
       LocationComponentSettings(enabled: true, pulsingEnabled: true),
     );
-
-    // if (state is HomeLoadedState && state.polylinePoints != null) {
-    //   _addPolylineToMap(
-    //     state.polylinePoints!
-    //         .map((p) => [p.coordinates.lng, p.coordinates.lat])
-    //         .toList(),
-    //   );
-    // }
 
     if (state is HomeLoadedState &&
         state.polylinePoints != null &&
@@ -55,16 +61,16 @@ class _HomePageState extends State<HomePage>
         state.direction != null) {
       // Add origin marker
       addMarkerToMap(
-        _mapboxController!,
-        state.polylinePoints!.first,
-        "origin",
+        controller: _mapboxController!,
+        point: state.polylinePoints!.first,
+        markerName: "origin",
       );
 
       // Add dropoff marker
       addMarkerToMap(
-        _mapboxController!,
-        state.polylinePoints!.last,
-        "dropoff",
+        controller: _mapboxController!,
+        point: state.polylinePoints!.last,
+        markerName: "dropoff",
       );
 
       _addPolylineToMap(
@@ -117,18 +123,16 @@ class _HomePageState extends State<HomePage>
         ),
       );
 
-      BlocProvider.of<HomeBloc>(context)
-          .add(InitializeGeofireListenerEvent(userLocation: state.location));
+      BlocProvider.of<HomeBloc>(context).add(InitializeGeofireListenerEvent(
+        userLocation: state.location,
+        activeNearbyDriverKeysLoaded: activeNearbyDriverKeysLoaded,
+      ));
     }
   }
 
   void _addPolylineToMap(List<List<num>> coordinates) async {
     if (_mapboxController == null || coordinates.isEmpty) return;
 
-    // await _mapboxController?.style.removeStyleLayer('route-layer');
-    // await _mapboxController?.style.removeStyleSource('route-source');
-
-    // Convert GeoJSON object to a string
     String geoJsonData = jsonEncode({
       "type": "FeatureCollection",
       "features": [
@@ -159,11 +163,9 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  void createDriverMarker() {}
-
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Call super.build
+    super.build(context);
 
     return MultiBlocListener(
       listeners: [
@@ -194,36 +196,60 @@ class _HomePageState extends State<HomePage>
             if (state is GetPolylineLoadingState) {
               showDialog(
                 context: context,
-                barrierDismissible:
-                    false, // Prevent user from closing dialog manually
+                barrierDismissible: false,
                 builder: (context) =>
                     const ProgressDialog(message: "Please wait..."),
               );
             } else {
-              Navigator.of(context, rootNavigator: true)
-                  .pop(); // Dismiss the dialo
+              Navigator.of(context, rootNavigator: true).pop();
             }
           },
         ),
         BlocListener<HomeBloc, HomeState>(
           listenWhen: (previous, current) =>
-              current is HomeLoadedState && current.nearbyDrivers != null,
-          listener: (context, state) {
-            if (state is HomeLoadedState) {
-              for (ActiveNearbyDriverEntity eachDriver
-                  in state.nearbyDrivers!) {
-                print('Each Driver Id: ${eachDriver.driverId}');
+              current is HomeLoadedState &&
+              current.nearbyDrivers != null &&
+              current.activeNearbyDriverKeysLoaded != null,
+          listener: (context, state) async {
+            if (state is HomeLoadedState &&
+                state.activeNearbyDriverKeysLoaded != null) {
+              setState(() {
+                activeNearbyDriverKeysLoaded = state.activeNearbyDriverKeysLoaded!;
+              });
 
-                Point eachDriverPoint = Point(
-                    coordinates:
-                        Position(eachDriver.longitude, eachDriver.latitude));
+              print('activeNearbyDriverKeysLoaded: $activeNearbyDriverKeysLoaded');
 
-                // Add nearby drivers marker
-                addMarkerToMap(
-                  _mapboxController!,
-                  eachDriverPoint,
-                  "car_driver",
-                );
+              if (state.activeNearbyDriverKeysLoaded!) {
+                Set<String> currentDriverIds =
+                    state.nearbyDrivers!.map((e) => e.driverId).toSet();
+
+                List<String> removedDriverIds = _driverMarkers.keys
+                    .where((id) => !currentDriverIds.contains(id))
+                    .toList();
+
+                for (String driverId in removedDriverIds) {
+                  removeDriverMarker(driverId);
+                }
+
+                for (ActiveNearbyDriverEntity eachDriver
+                    in state.nearbyDrivers!) {
+                  String driverId = eachDriver.driverId;
+
+                  print('Each Driver Id: ${eachDriver.driverId}');
+
+                  Point eachDriverPoint = Point(
+                      coordinates:
+                          Position(eachDriver.longitude, eachDriver.latitude));
+
+                  PointAnnotation marker = await addMarkerToMap(
+                    controller: _mapboxController!,
+                    point: eachDriverPoint,
+                    markerName: "car_driver",
+                    driverId: driverId,
+                  );
+
+                  _driverMarkers[driverId] = marker;
+                }
               }
             }
           },
@@ -238,15 +264,6 @@ class _HomePageState extends State<HomePage>
               ),
             );
           } else if (state is HomeLoadedState) {
-            // // Render polyline if available
-            // if (state.polylinePoints != null &&
-            //     state.polylinePoints!.isNotEmpty) {
-            //   _addPolylineToMap(
-            //     state.polylinePoints!
-            //         .map((p) => [p.coordinates.lng, p.coordinates.lat])
-            //         .toList(),
-            //   );
-            // }
             return Stack(
               children: [
                 MapWidget(
@@ -269,7 +286,6 @@ class _HomePageState extends State<HomePage>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Form Input Field
                           Container(
                             decoration: BoxDecoration(
                               color: AppColors.gray100,
@@ -316,7 +332,6 @@ class _HomePageState extends State<HomePage>
 
                           const SizedBox(height: 5),
 
-                          // To Input Field
                           GestureDetector(
                             onTap: () async {
                               final dropoffLocation = await Navigator.push(

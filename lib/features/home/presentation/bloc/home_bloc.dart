@@ -3,13 +3,14 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:users/features/home/data/datasource/home_remote_data_source.dart';
+import 'package:users/features/home/data/datasource/home_remote_data_source.dart'; // Import for NearbyDriversWithStatus
 import 'package:users/features/home/domain/entities/active_nearby_driver_entity.dart';
 import 'package:users/features/home/domain/usecases/get_polyline_use_case.dart';
 import 'package:users/features/home/domain/usecases/get_user_location_use_case.dart';
 import 'package:users/features/home/domain/usecases/initialize_geofire_listener_use_case.dart';
 import 'package:users/features/home/presentation/bloc/home_event.dart';
 import 'package:users/features/home/presentation/bloc/home_state.dart';
-
 import 'package:users/core/utils/map_utils.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
@@ -46,7 +47,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(
         HomeLoadedState(
           location: currentState.location,
-          dropoffLocation: event.dropoffLocation, // Update dropoff location
+          dropoffLocation: event.dropoffLocation,
+          direction: currentState.direction,
+          polylinePoints: currentState.polylinePoints,
+          centerPoint: currentState.centerPoint,
+          nearbyDrivers: currentState.nearbyDrivers,
+          activeNearbyDriverKeysLoaded: currentState.activeNearbyDriverKeysLoaded,
         ),
       );
     }
@@ -55,12 +61,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _onInitializeGeofireListener(
       InitializeGeofireListenerEvent event, Emitter<HomeState> emit) async {
     try {
-      await emit.forEach(
-        initializeGeofireListenerUseCase.call(userLocation: event.userLocation),
-        onData: (List<ActiveNearbyDriverEntity> nearbyDrivers) {
-          print("Updated Nearby Drivers in Bloc: $nearbyDrivers");
+      await emit.forEach<NearbyDriversWithStatus>(
+        initializeGeofireListenerUseCase.call(
+          userLocation: event.userLocation,
+          activeNearbyDriverKeysLoaded: event.activeNearbyDriverKeysLoaded,
+        ),
+        onData: (NearbyDriversWithStatus data) {
+          print("Updated Nearby Drivers in Bloc: ${data.drivers}");
           return HomeLoadedState(
-              location: event.userLocation, nearbyDrivers: nearbyDrivers);
+            location: event.userLocation,
+            nearbyDrivers: data.drivers,
+            activeNearbyDriverKeysLoaded: data.activeNearbyDriverKeysLoaded,
+          );
         },
         onError: (error, stackTrace) {
           print("Error in Geofire Stream: $error");

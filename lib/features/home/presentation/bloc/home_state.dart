@@ -12,6 +12,7 @@ class GetUserLocationLoadingState extends HomeState {}
 class HomeLoadedState extends HomeState {
   final LocationEntity location;
   final List<ActiveNearbyDriverEntity>? nearbyDrivers;
+  final bool? activeNearbyDriverKeysLoaded;
   final LocationEntity? dropoffLocation; // Nullable initially
   final DirectionEntity? direction;
   final List<Point>? polylinePoints;
@@ -20,6 +21,7 @@ class HomeLoadedState extends HomeState {
   HomeLoadedState({
     required this.location,
     this.nearbyDrivers,
+    this.activeNearbyDriverKeysLoaded,
     this.dropoffLocation,
     this.direction,
     this.polylinePoints,

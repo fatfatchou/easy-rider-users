@@ -6,8 +6,12 @@ class GetUserLocationEvent extends HomeEvent {}
 
 class InitializeGeofireListenerEvent extends HomeEvent {
   final LocationEntity userLocation;
+  final bool activeNearbyDriverKeysLoaded;
 
-  InitializeGeofireListenerEvent({required this.userLocation});
+  InitializeGeofireListenerEvent({
+    required this.userLocation,
+    required this.activeNearbyDriverKeysLoaded,
+  });
 }
 
 class UpdateDropoffLocationEvent extends HomeEvent {
@@ -20,5 +24,6 @@ class GetPolylineEvent extends HomeEvent {
   final LocationEntity originLocation;
   final LocationEntity dropoffLocation;
 
-  GetPolylineEvent({required this.originLocation, required this.dropoffLocation});
+  GetPolylineEvent(
+      {required this.originLocation, required this.dropoffLocation});
 }

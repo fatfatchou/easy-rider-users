@@ -69,10 +69,13 @@ class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
-  Stream<List<ActiveNearbyDriverEntity>> initializeGeofireListener({
+  Stream<NearbyDriversWithStatus> initializeGeofireListener({
     required LocationEntity userLocation,
-  })  {
+    required bool activeNearbyDriverKeysLoaded,
+  }) {
     return homeRemoteDataSource.initializeGeofireListener(
-        userLocation: userLocation);
+      userLocation: userLocation,
+      activeNearbyDriverKeysLoaded: activeNearbyDriverKeysLoaded,
+    );
   }
 }

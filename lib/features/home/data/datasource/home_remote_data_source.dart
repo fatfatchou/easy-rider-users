@@ -12,6 +12,17 @@ import 'package:users/features/home/data/models/location_model.dart';
 import 'package:users/features/home/domain/entities/active_nearby_driver_entity.dart';
 import 'package:users/features/home/domain/entities/location_entity.dart';
 
+// Data class to hold drivers and status
+class NearbyDriversWithStatus {
+  final List<ActiveNearbyDriverEntity> drivers;
+  final bool activeNearbyDriverKeysLoaded;
+
+  NearbyDriversWithStatus({
+    required this.drivers,
+    required this.activeNearbyDriverKeysLoaded,
+  });
+}
+
 class HomeRemoteDataSource {
   final String baseUrl;
 
@@ -57,10 +68,11 @@ class HomeRemoteDataSource {
     }
   }
 
-  Stream<List<ActiveNearbyDriverEntity>> initializeGeofireListener({
+  Stream<NearbyDriversWithStatus> initializeGeofireListener({
     required LocationEntity userLocation,
+    required bool activeNearbyDriverKeysLoaded,
   }) {
-    final StreamController<List<ActiveNearbyDriverEntity>> controller =
+    final StreamController<NearbyDriversWithStatus> controller =
         StreamController();
     List<ActiveNearbyDriverEntity> activeNearbyDrivers = [];
 
@@ -80,13 +92,13 @@ class HomeRemoteDataSource {
               print("Key Entered");
               activeDriver = ActiveNearbyDriverModel.fromJson(event);
               activeNearbyDrivers = addActiveNearbyDriverToList(
-                  driver: activeDriver,
-                  activeNearbyDrivers: activeNearbyDrivers);
+                driver: activeDriver,
+                activeNearbyDrivers: activeNearbyDrivers,
+              );
               break;
 
             case Geofire.onKeyExited:
-              String driverId =
-                  ActiveNearbyDriverModel.fromJson(event).driverId;
+              String driverId = event['key'];
               activeNearbyDrivers = deleteOfflineDriverFromList(
                   driverId: driverId, activeNearbyDrivers: activeNearbyDrivers);
               break;
@@ -94,16 +106,22 @@ class HomeRemoteDataSource {
             case Geofire.onKeyMoved:
               activeDriver = ActiveNearbyDriverModel.fromJson(event);
               activeNearbyDrivers = updateActiveNearbyDriverLocation(
-                  driver: activeDriver,
-                  activeNearbyDrivers: activeNearbyDrivers);
+                driver: activeDriver,
+                activeNearbyDrivers: activeNearbyDrivers,
+              );
               break;
 
             case Geofire.onGeoQueryReady:
+              print('Query Ready');
+              activeNearbyDriverKeysLoaded = true;
               break;
           }
 
           print("Active nearby driver: $activeNearbyDrivers");
-          controller.add(activeNearbyDrivers);
+          controller.add(NearbyDriversWithStatus(
+            drivers: activeNearbyDrivers,
+            activeNearbyDriverKeysLoaded: activeNearbyDriverKeysLoaded,
+          ));
         }
       },
     );
