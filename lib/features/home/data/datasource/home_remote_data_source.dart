@@ -11,17 +11,7 @@ import 'package:users/features/home/data/models/direction_model.dart';
 import 'package:users/features/home/data/models/location_model.dart';
 import 'package:users/features/home/domain/entities/active_nearby_driver_entity.dart';
 import 'package:users/features/home/domain/entities/location_entity.dart';
-
-// Data class to hold drivers and status
-class NearbyDriversWithStatus {
-  final List<ActiveNearbyDriverEntity> drivers;
-  final bool activeNearbyDriverKeysLoaded;
-
-  NearbyDriversWithStatus({
-    required this.drivers,
-    required this.activeNearbyDriverKeysLoaded,
-  });
-}
+import 'package:users/features/home/domain/entities/nearby_driver_with_status_entity.dart';
 
 class HomeRemoteDataSource {
   final String baseUrl;

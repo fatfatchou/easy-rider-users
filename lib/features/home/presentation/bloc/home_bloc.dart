@@ -3,9 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-import 'package:users/features/home/data/datasource/home_remote_data_source.dart';
-import 'package:users/features/home/data/datasource/home_remote_data_source.dart'; // Import for NearbyDriversWithStatus
-import 'package:users/features/home/domain/entities/active_nearby_driver_entity.dart';
+import 'package:users/features/home/domain/entities/nearby_driver_with_status_entity.dart';
 import 'package:users/features/home/domain/usecases/get_polyline_use_case.dart';
 import 'package:users/features/home/domain/usecases/get_user_location_use_case.dart';
 import 'package:users/features/home/domain/usecases/initialize_geofire_listener_use_case.dart';
