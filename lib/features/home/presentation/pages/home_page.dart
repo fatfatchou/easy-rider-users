@@ -1,10 +1,10 @@
 import 'dart:convert';
+import 'package:flutter/services.dart'; // Add this for rootBundle
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:users/core/theme.dart';
-import 'package:users/core/utils/map_utils.dart';
 import 'package:users/features/home/domain/entities/active_nearby_driver_entity.dart';
 import 'package:users/features/home/domain/entities/location_entity.dart';
 import 'package:users/features/home/presentation/bloc/home_bloc.dart';
@@ -26,7 +26,8 @@ class _HomePageState extends State<HomePage>
   bool get wantKeepAlive => true;
 
   MapboxMap? _mapboxController;
-  final Map<String, PointAnnotation> _driverMarkers = {};
+  PointAnnotationManager? _annotationManager; // Single manager for all annotations
+  final Map<String, Map<String, dynamic>> _driverMarkers = {};
   bool activeNearbyDriverKeysLoaded = false;
 
   @override
@@ -35,18 +36,91 @@ class _HomePageState extends State<HomePage>
     super.initState();
   }
 
+  Future<PointAnnotation> addMarkerToMap({
+    required Point point,
+    required String markerName,
+    String? driverId,
+  }) async {
+    if (_annotationManager == null) {
+      throw Exception("Annotation manager not initialized");
+    }
+
+    final ByteData bytes = await rootBundle.load(markerName == "origin"
+        ? 'assets/images/origin.png'
+        : markerName == "dropoff"
+            ? 'assets/images/dropoff.png'
+            : 'assets/images/car.png');
+    final Uint8List icon = bytes.buffer.asUint8List();
+
+    print('Add a driver marker: ${driverId ?? markerName}');
+    return await _annotationManager!.create(
+      PointAnnotationOptions(
+        geometry: point,
+        iconSize: 1.5,
+        image: icon,
+        iconOffset: [0.0, -10.0],
+      ),
+    );
+  }
+
   void removeDriverMarker(String driverId) async {
-    if (_driverMarkers.containsKey(driverId)) {
-      await _mapboxController?.annotations
-          .removeAnnotationManagerById(driverId);
+    if (_driverMarkers.containsKey(driverId) && _annotationManager != null) {
+      final markerData = _driverMarkers[driverId];
+      final annotation = markerData?['annotation'] as PointAnnotation?;
+      if (annotation != null) {
+        await _annotationManager!.delete(annotation);
+      }
       _driverMarkers.remove(driverId);
       print("Removed driver marker: $driverId");
+    }
+  }
+
+  Future<void> updateDriverMarkerPosition(
+    String driverId,
+    Point newPosition,
+  ) async {
+    if (_annotationManager == null) {
+      print("Annotation manager is null, cannot update marker: $driverId");
+      return;
+    }
+    if (_driverMarkers.containsKey(driverId)) {
+      final markerData = _driverMarkers[driverId];
+      final existingAnnotation = markerData?['annotation'] as PointAnnotation?;
+      final markerImage = markerData?['image'] as Uint8List?;
+
+      if (existingAnnotation != null && markerImage != null) {
+        await _annotationManager!.delete(existingAnnotation);
+
+        final updatedAnnotation = await _annotationManager!.create(
+          PointAnnotationOptions(
+            geometry: newPosition,
+            image: markerImage,
+            iconSize: 1.5,
+            iconOffset: [0.0, -10.0],
+          ),
+        );
+
+        _driverMarkers[driverId] = {
+          'annotation': updatedAnnotation,
+          'image': markerImage,
+        };
+        print("Updated driver marker position: $driverId to $newPosition");
+      } else {
+        print("Missing annotation or image for driver: $driverId");
+      }
+    } else {
+      print("No marker found for driver: $driverId");
     }
   }
 
   void _onMapCreated(MapboxMap? controller, HomeState? state) {
     setState(() {
       _mapboxController = controller;
+    });
+
+    _mapboxController!.annotations.createPointAnnotationManager().then((manager) {
+      _annotationManager = manager;
+      print("PointAnnotationManager initialized");
     });
 
     print('Map Created Again');
@@ -59,16 +133,12 @@ class _HomePageState extends State<HomePage>
         state.polylinePoints != null &&
         state.centerPoint != null &&
         state.direction != null) {
-      // Add origin marker
       addMarkerToMap(
-        controller: _mapboxController!,
         point: state.polylinePoints!.first,
         markerName: "origin",
       );
 
-      // Add dropoff marker
       addMarkerToMap(
-        controller: _mapboxController!,
         point: state.polylinePoints!.last,
         markerName: "dropoff",
       );
@@ -226,29 +296,35 @@ class _HomePageState extends State<HomePage>
                 List<String> removedDriverIds = _driverMarkers.keys
                     .where((id) => !currentDriverIds.contains(id))
                     .toList();
-
                 for (String driverId in removedDriverIds) {
                   removeDriverMarker(driverId);
                 }
 
-                for (ActiveNearbyDriverEntity eachDriver
-                    in state.nearbyDrivers!) {
+                for (ActiveNearbyDriverEntity eachDriver in state.nearbyDrivers!) {
                   String driverId = eachDriver.driverId;
-
-                  print('Each Driver Id: ${eachDriver.driverId}');
-
                   Point eachDriverPoint = Point(
-                      coordinates:
-                          Position(eachDriver.longitude, eachDriver.latitude));
-
-                  PointAnnotation marker = await addMarkerToMap(
-                    controller: _mapboxController!,
-                    point: eachDriverPoint,
-                    markerName: "car_driver",
-                    driverId: driverId,
+                    coordinates: Position(eachDriver.longitude, eachDriver.latitude),
                   );
 
-                  _driverMarkers[driverId] = marker;
+                  if (_driverMarkers.containsKey(driverId)) {
+                    await updateDriverMarkerPosition(driverId, eachDriverPoint);
+                  } else if (_annotationManager != null) {
+                    final ByteData bytes = await rootBundle.load('assets/images/car.png');
+                    final Uint8List icon = bytes.buffer.asUint8List();
+                    final marker = await _annotationManager!.create(
+                      PointAnnotationOptions(
+                        geometry: eachDriverPoint,
+                        image: icon,
+                        iconSize: 1.5,
+                        iconOffset: [0.0, -10.0],
+                      ),
+                    );
+                    _driverMarkers[driverId] = {
+                      'annotation': marker,
+                      'image': icon,
+                    };
+                    print("Added new driver marker: $driverId");
+                  }
                 }
               }
             }
@@ -329,9 +405,7 @@ class _HomePageState extends State<HomePage>
                               ),
                             ),
                           ),
-
                           const SizedBox(height: 5),
-
                           GestureDetector(
                             onTap: () async {
                               final dropoffLocation = await Navigator.push(
@@ -406,6 +480,7 @@ class _HomePageState extends State<HomePage>
                     ),
                   ),
                 ),
+              
               ],
             );
           } else if (state is GetUserLocationErrorState) {
